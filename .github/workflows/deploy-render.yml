@@ -19,8 +19,10 @@ jobs:
           RENDER_OWNER_ID: ${{ secrets.RENDER_OWNER_ID }}
         run: |
           set -euo pipefail
+          api_key="$(printf '%s' "$RENDER_API_KEY" | tr -d '\r\n')"
+          owner_id="$(printf '%s' "$RENDER_OWNER_ID" | tr -d '\r\n')"
           payload="$(jq -n \
-            --arg ownerId "$RENDER_OWNER_ID" \
+            --arg ownerId "$owner_id" \
             --arg repo "https://github.com/HemaKiran22/AgroLink" \
             '{
               ownerId: $ownerId,
@@ -33,7 +35,7 @@ jobs:
 
           response="$(curl --silent --show-error \
             -X POST "https://api.render.com/v1/blueprints" \
-            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Authorization: Bearer $api_key" \
             -H "Content-Type: application/json" \
             --data "$payload")"
 
