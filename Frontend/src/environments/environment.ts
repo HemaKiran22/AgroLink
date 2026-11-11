@@ -1,3 +1,3 @@
 export const environment = {
-  apiBaseUrl: 'http://localhost:5109/api',
+  apiBaseUrl: 'https://agrolink-gtfzcggbcdh6dxhn.southindia-01.azurewebsites.net',
 };
