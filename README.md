@@ -157,17 +157,20 @@ If your API runs on a different port, update the API URL in the Angular services
 
 ## ☁️ Azure deployment
 
-The repository includes `.github/workflows/deploy-azure.yml`, which deploys the API and
-Angular SSR frontend to separate Azure App Services when changes are pushed to `main`.
+The repository includes `.github/workflows/deploy-azure.yml`, which provisions and
+deploys the API and Angular SSR frontend to separate Azure App Services when changes
+are pushed to `main`. It uses the existing Neon PostgreSQL database; no database
+resource is created in Azure.
 
 Create one production environment in GitHub and configure these values:
 
-- Variables: `AZURE_API_APP_NAME`, `AZURE_FRONTEND_APP_NAME`, `AZURE_API_URL`
-- Secrets: `AZURE_API_PUBLISH_PROFILE`, `AZURE_FRONTEND_PUBLISH_PROFILE`
+- Variables: `AZURE_SUBSCRIPTION_ID`, `AZURE_RESOURCE_GROUP`, `AZURE_LOCATION`,
+  `AZURE_APP_SERVICE_PLAN`, `AZURE_API_APP_NAME`, `AZURE_FRONTEND_APP_NAME`
+- Secrets: `AZURE_CREDENTIALS`, `NEON_CONNECTION_STRING`, `JWT_KEY`
 
-Configure the API App Service with the `DefaultConnection`, `Jwt__Key`, `Jwt__Issuer`,
-`Jwt__Audience`, and `Cors__Origins__0` application settings. Set the frontend App
-Service startup command to `node server/server.mjs`.
+`AZURE_CREDENTIALS` is the JSON output from an Azure service principal with
+Contributor access to the subscription. The workflow configures the Neon connection
+string, JWT settings, CORS, and the frontend startup command automatically.
 
 ## 🔮 Future Improvements
 - Pickup / home delivery option and delivery tracking

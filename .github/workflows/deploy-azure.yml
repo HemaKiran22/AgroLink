@@ -10,11 +10,48 @@ permissions:
   contents: read
 
 jobs:
-  deploy-api:
+  deploy:
     runs-on: ubuntu-latest
     environment: production
     steps:
       - uses: actions/checkout@v4
+
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Provision App Services
+        env:
+          RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          LOCATION: ${{ vars.AZURE_LOCATION }}
+          PLAN_NAME: ${{ vars.AZURE_APP_SERVICE_PLAN }}
+          API_APP_NAME: ${{ vars.AZURE_API_APP_NAME }}
+          FRONTEND_APP_NAME: ${{ vars.AZURE_FRONTEND_APP_NAME }}
+        run: |
+          az account set --subscription "${{ vars.AZURE_SUBSCRIPTION_ID }}"
+          az group create --name "$RESOURCE_GROUP" --location "$LOCATION" --output none
+          az appservice plan create \
+            --name "$PLAN_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --location "$LOCATION" \
+            --is-linux \
+            --sku B1 \
+            --output none
+          az webapp show --name "$API_APP_NAME" --resource-group "$RESOURCE_GROUP" --output none 2>/dev/null ||
+            az webapp create \
+              --name "$API_APP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --plan "$PLAN_NAME" \
+              --runtime "DOTNETCORE:10.0" \
+              --output none
+          az webapp show --name "$FRONTEND_APP_NAME" --resource-group "$RESOURCE_GROUP" --output none 2>/dev/null ||
+            az webapp create \
+              --name "$FRONTEND_APP_NAME" \
+              --resource-group "$RESOURCE_GROUP" \
+              --plan "$PLAN_NAME" \
+              --runtime "NODE:22-lts" \
+              --output none
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -23,18 +60,35 @@ jobs:
       - name: Publish API
         run: dotnet publish Backend/Backend.csproj --configuration Release --output ./api-publish
 
-      - name: Deploy API
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ vars.AZURE_API_APP_NAME }}
-          publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE }}
-          package: ./api-publish
+      - name: Configure API
+        env:
+          RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          API_APP_NAME: ${{ vars.AZURE_API_APP_NAME }}
+          FRONTEND_APP_NAME: ${{ vars.AZURE_FRONTEND_APP_NAME }}
+          NEON_CONNECTION_STRING: ${{ secrets.NEON_CONNECTION_STRING }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+        run: |
+          az webapp config appsettings set \
+            --resource-group "$RESOURCE_GROUP" \
+            --name "$API_APP_NAME" \
+            --settings \
+              ConnectionStrings__DefaultConnection="$NEON_CONNECTION_STRING" \
+              Jwt__Key="$JWT_KEY" \
+              Jwt__Issuer="AgroLinkAPI" \
+              Jwt__Audience="AgroLinkFrontend" \
+              Cors__Origins__0="https://${FRONTEND_APP_NAME}.azurewebsites.net" \
+            --output none
 
-  deploy-frontend:
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
+      - name: Deploy API
+        run: |
+          cd api-publish
+          zip -r ../api.zip .
+          az webapp deploy \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ vars.AZURE_API_APP_NAME }}" \
+            --src-path ../api.zip \
+            --type zip \
+            --output none
 
       - uses: actions/setup-node@v4
         with:
@@ -42,20 +96,31 @@ jobs:
           cache: npm
           cache-dependency-path: Frontend/package-lock.json
 
-      - name: Configure API URL
+      - name: Configure frontend API URL
         env:
-          API_BASE_URL: ${{ vars.AZURE_API_URL }}
+          API_BASE_URL: https://${{ vars.AZURE_API_APP_NAME }}.azurewebsites.net/api
         run: |
-          test -n "$API_BASE_URL"
           printf "export const environment = { apiBaseUrl: '%s' };\\n" "$API_BASE_URL" > Frontend/src/environments/environment.ts
 
       - name: Build frontend
         working-directory: Frontend
         run: npm ci && npm run build
 
+      - name: Configure frontend startup
+        run: |
+          az webapp config set \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ vars.AZURE_FRONTEND_APP_NAME }}" \
+            --startup-file "node server/server.mjs" \
+            --output none
+
       - name: Deploy frontend
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ vars.AZURE_FRONTEND_APP_NAME }}
-          publish-profile: ${{ secrets.AZURE_FRONTEND_PUBLISH_PROFILE }}
-          package: ./Frontend/dist/Frontend
+        run: |
+          cd Frontend/dist/Frontend
+          zip -r ../../../frontend.zip .
+          az webapp deploy \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ vars.AZURE_FRONTEND_APP_NAME }}" \
+            --src-path ../../../frontend.zip \
+            --type zip \
+            --output none
