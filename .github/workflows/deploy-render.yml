@@ -23,7 +23,7 @@ jobs:
           owner_id="$(printf '%s' "$RENDER_OWNER_ID" | tr -d '\r\n')"
           payload="$(jq -n \
             --arg ownerId "$owner_id" \
-            --arg repo "https://github.com/HemaKiran22/AgroLink" \
+            --arg repo "HemaKiran22/AgroLink" \
             '{
               ownerId: $ownerId,
               name: "agrolink",
