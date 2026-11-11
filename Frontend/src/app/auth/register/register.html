@@ -1,0 +1,134 @@
+<div class="auth-page">
+
+  <div class="auth-card">
+
+    <div class="brand">
+      <div class="logo">🌱</div>
+      <h1>Create AgroLink Account</h1>
+      <p>Register as a Farmer or Seller</p>
+    </div>
+
+    <form #registerForm="ngForm" (ngSubmit)="register(registerForm)" novalidate>
+
+      <div class="form-group">
+  <label for="name">Full Name</label>
+
+  <input
+    id="name"
+    type="text"
+    name="name"
+    [(ngModel)]="registerData.name"
+    #name="ngModel"
+    required
+    minlength="2"
+    maxlength="100"
+    [pattern]="namePattern"
+    autocomplete="name"
+    placeholder="Example: Hema Kiran">
+
+  @if (name.invalid && (name.touched || registerForm.submitted)) {
+    @if (name.errors?.['required']) {
+      <small class="error-text">Full name is required.</small>
+    } @else if (name.errors?.['minlength']) {
+      <small class="error-text">Name must be at least 2 characters.</small>
+    } @else if (name.errors?.['pattern']) {
+      <small class="error-text">
+        Use letters, _ and - only, with single spaces between words.
+      </small>
+    }
+  }
+</div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+
+        <input
+          id="email"
+          type="email"
+          name="email"
+          [(ngModel)]="registerData.email"
+          #email="ngModel"
+          required
+          email
+          autocomplete="email"
+          placeholder="Enter email">
+
+        @if (email.invalid && (email.touched || registerForm.submitted)) {
+          <small class="error-text">Enter a valid email.</small>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="role">Register As</label>
+
+        <select
+          id="role"
+          name="role"
+          [(ngModel)]="registerData.role"
+          required>
+          <option value="Farmer">Farmer</option>
+          <option value="Seller">Seller</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+
+        <input
+          id="password"
+          type="password"
+          name="password"
+          [(ngModel)]="registerData.password"
+          #password="ngModel"
+          required
+          minlength="6"
+          autocomplete="new-password"
+          placeholder="Minimum 6 characters">
+
+        @if (password.invalid && (password.touched || registerForm.submitted)) {
+          <small class="error-text">Password must contain at least 6 characters.</small>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+
+        <input
+          id="confirmPassword"
+          type="password"
+          name="confirmPassword"
+          [(ngModel)]="confirmPassword"
+          #confirmPasswordField="ngModel"
+          required
+          autocomplete="new-password"
+          placeholder="Confirm password">
+
+        @if (confirmPasswordField.invalid && (confirmPasswordField.touched || registerForm.submitted)) {
+          <small class="error-text">Confirm password is required.</small>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <div class="error-box" role="alert">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <button type="submit" class="primary-button" [disabled]="loading()">
+        @if (loading()) {
+          Creating account...
+        } @else {
+          Create Account
+        }
+      </button>
+
+    </form>
+
+    <p class="switch-text">
+      Already have an account?
+      <a routerLink="/login">Sign In</a>
+    </p>
+
+  </div>
+
+</div>

@@ -1,0 +1,227 @@
+<div class="page">
+
+  <header class="page-header">
+    <div>
+      <a routerLink="/seller/dashboard" class="back-link">
+        ← Seller Dashboard
+      </a>
+
+      <h1>Farmer Requests</h1>
+
+      <p>Review farmer product requests and update their status.</p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      [disabled]="loading()"
+      (click)="loadRequests()">
+      {{ loading() ? 'Refreshing...' : 'Refresh' }}
+    </button>
+  </header>
+
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      {{ successMessage() }}
+    </div>
+  }
+
+
+  <!-- FILTERS -->
+  <section class="filters">
+
+    <div class="filter-group">
+      <label for="search">Search Requests</label>
+
+      <input
+        id="search"
+        type="search"
+        name="search"
+        [ngModel]="searchText()"
+        (ngModelChange)="searchText.set($event)"
+        placeholder="Search farmer, product or message">
+    </div>
+
+    <div class="filter-group">
+      <label for="status">Request Status</label>
+
+      <select
+        id="status"
+        name="status"
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)">
+        <option value="All">All Requests</option>
+        <option value="Pending">Pending</option>
+        <option value="Approved">Approved</option>
+        <option value="Rejected">Rejected</option>
+        <option value="Completed">Completed</option>
+      </select>
+    </div>
+
+  </section>
+
+
+  <!-- REQUESTS -->
+  <section class="requests-section">
+
+    @if (loading()) {
+
+      <div class="state-card">
+        Loading farmer requests...
+      </div>
+
+    } @else if (filteredRequests().length === 0) {
+
+      <div class="state-card">
+        <div class="empty-icon">📋</div>
+
+        <h2>No requests found</h2>
+
+        @if (requests().length === 0) {
+          <p>Requests for your agrochemicals will appear here.</p>
+        } @else {
+          <p>No requests match the selected filters.</p>
+        }
+      </div>
+
+    } @else {
+
+      <div class="request-grid">
+
+        @for (request of filteredRequests(); track request.id) {
+
+          <article class="request-card">
+
+            <!-- REQUEST HEADER -->
+            <div class="request-header">
+
+              <div class="product-identity">
+                <div class="product-icon">🧴</div>
+
+                <div>
+                  <h2>{{ request.agrochemicalName }}</h2>
+                  <p>Request #{{ request.id }}</p>
+                </div>
+              </div>
+
+              <span
+                class="status-badge"
+                [class.pending]="request.status === 'Pending'"
+                [class.approved]="request.status === 'Approved'"
+                [class.rejected]="request.status === 'Rejected'"
+                [class.completed]="request.status === 'Completed'">
+                {{ request.status }}
+              </span>
+
+            </div>
+
+
+            <!-- FARMER -->
+            <div class="farmer-box">
+              <div class="farmer-icon">👨‍🌾</div>
+
+              <div>
+                <span>Requested by</span>
+                <strong>{{ request.farmerName }}</strong>
+              </div>
+            </div>
+
+
+            <!-- REQUEST DETAILS -->
+            <div class="request-details">
+              <div>
+                <span>Quantity</span>
+                <strong>{{ request.quantity }}</strong>
+              </div>
+
+              <div>
+                <span>Requested On</span>
+                <strong>{{ request.requestedAt | date:'mediumDate' }}</strong>
+              </div>
+            </div>
+
+
+            <!-- FARMER MESSAGE -->
+            <div class="message-box">
+              <span>Farmer's Message</span>
+              <p>{{ request.message || 'No message was provided.' }}</p>
+            </div>
+
+
+            <!-- STATUS WORKFLOW -->
+            <div class="status-actions">
+
+              @if (request.status === 'Pending') {
+
+                <p>Respond to Request</p>
+
+                <div class="action-buttons pending-actions">
+                  <button
+                    type="button"
+                    class="approve-button"
+                    [disabled]="updatingId() === request.id"
+                    (click)="updateStatus(request, 'Approved')">
+                    Approve
+                  </button>
+
+                  <button
+                    type="button"
+                    class="reject-button"
+                    [disabled]="updatingId() === request.id"
+                    (click)="updateStatus(request, 'Rejected')">
+                    Reject
+                  </button>
+                </div>
+
+              } @else if (request.status === 'Approved') {
+
+                <p>Request Approved</p>
+
+                <button
+                  type="button"
+                  class="complete-button full-button"
+                  [disabled]="updatingId() === request.id"
+                  (click)="updateStatus(request, 'Completed')">
+                  Mark as Completed
+                </button>
+
+              } @else if (request.status === 'Rejected') {
+
+                <div class="final-state rejected-state">
+                  <strong>Request Rejected</strong>
+                  <span>No further action is available.</span>
+                </div>
+
+              } @else if (request.status === 'Completed') {
+
+                <div class="final-state completed-state">
+                  <strong>✓ Request Completed</strong>
+                  <span>This request has been completed.</span>
+                </div>
+
+              }
+
+              @if (updatingId() === request.id) {
+                <span class="updating-text">Updating request...</span>
+              }
+
+            </div>
+
+          </article>
+
+        }
+
+      </div>
+
+    }
+
+  </section>
+
+</div>

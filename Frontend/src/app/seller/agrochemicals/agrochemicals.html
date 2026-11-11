@@ -1,0 +1,269 @@
+<div class="page">
+
+  <header class="page-header">
+    <div>
+      <a routerLink="/seller/dashboard" class="back-link">
+        ← Seller Dashboard
+      </a>
+
+      <h1>My Agrochemicals</h1>
+
+      <p>Add, update and manage your AgroLink product listings.</p>
+    </div>
+
+    <button type="button" class="primary-button" (click)="openAddForm()">
+      + Add Agrochemical
+    </button>
+  </header>
+
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      {{ successMessage() }}
+    </div>
+  }
+
+
+  <!-- ADD / EDIT FORM -->
+  @if (showForm()) {
+    <section class="form-card">
+
+      <div class="form-heading">
+        <div>
+          <h2>
+            @if (editingId() === null) {
+              Add Agrochemical
+            } @else {
+              Edit Agrochemical
+            }
+          </h2>
+          <p>Enter your agricultural product information.</p>
+        </div>
+
+        <button type="button" class="close-button" (click)="cancelForm()">
+          ✕
+        </button>
+      </div>
+
+      <form #form="ngForm" (ngSubmit)="saveProduct(form)">
+
+        <div class="form-grid">
+
+          <!-- NAME -->
+          <div class="form-group">
+            <label for="name">Product Name</label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              [(ngModel)]="productForm.name"
+              #name="ngModel"
+              required
+              maxlength="100"
+              placeholder="Example: Organic Fertilizer">
+
+            @if (name.invalid && name.touched) {
+              <small>Product name is required.</small>
+            }
+          </div>
+
+          <!-- CATEGORY -->
+          <div class="form-group">
+            <label for="category">Category</label>
+            <select
+              id="category"
+              name="category"
+              [(ngModel)]="productForm.category"
+              #category="ngModel"
+              required>
+              <option value="">Select category</option>
+              <option value="Fertilizer">Fertilizer</option>
+              <option value="Pesticide">Pesticide</option>
+              <option value="Herbicide">Herbicide</option>
+              <option value="Fungicide">Fungicide</option>
+              <option value="Insecticide">Insecticide</option>
+              <option value="Other">Other</option>
+            </select>
+
+            @if (category.invalid && category.touched) {
+              <small>Category is required.</small>
+            }
+          </div>
+
+          <!-- PRICE -->
+          <div class="form-group">
+            <label for="price">Price (₹)</label>
+            <input
+              id="price"
+              name="price"
+              type="number"
+              [(ngModel)]="productForm.price"
+              #price="ngModel"
+              required
+              min="0.01"
+              step="0.01">
+
+            @if (price.invalid && price.touched) {
+              <small>Enter a valid price.</small>
+            }
+          </div>
+
+          <!-- STOCK -->
+          <div class="form-group">
+            <label for="stock">Stock Quantity</label>
+            <input
+              id="stock"
+              name="stockQuantity"
+              type="number"
+              [(ngModel)]="productForm.stockQuantity"
+              #stock="ngModel"
+              required
+              min="0">
+
+            @if (stock.invalid && stock.touched) {
+              <small>Enter a valid stock quantity.</small>
+            }
+          </div>
+
+          <!-- DESCRIPTION -->
+          <div class="form-group full-width">
+            <label for="description">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              [(ngModel)]="productForm.description"
+              maxlength="500"
+              rows="4"
+              placeholder="Describe the product"></textarea>
+          </div>
+
+          <!-- USAGE -->
+          <div class="form-group full-width">
+            <label for="usageInstructions">Usage Instructions</label>
+            <textarea
+              id="usageInstructions"
+              name="usageInstructions"
+              [(ngModel)]="productForm.usageInstructions"
+              maxlength="500"
+              rows="4"
+              placeholder="Explain how the product should be used"></textarea>
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="cancel-button" (click)="cancelForm()">
+            Cancel
+          </button>
+
+          <button type="submit" class="primary-button" [disabled]="saving()">
+            @if (saving()) {
+              Saving...
+            } @else if (editingId() !== null) {
+              Update Product
+            } @else {
+              Add Product
+            }
+          </button>
+        </div>
+
+      </form>
+
+    </section>
+  }
+
+
+  <!-- PRODUCT LIST -->
+  <section class="products-section">
+
+    @if (loading()) {
+
+      <div class="state-card">
+        Loading your agrochemicals...
+      </div>
+
+    } @else if (products().length === 0) {
+
+      <div class="state-card">
+        <div class="empty-icon">🧴</div>
+        <h2>No products added yet</h2>
+        <p>Add your first agricultural product to start receiving farmer requests.</p>
+
+        <button type="button" class="primary-button" (click)="openAddForm()">
+          + Add First Product
+        </button>
+      </div>
+
+    } @else {
+
+      <div class="product-grid">
+
+        @for (product of products(); track product.id) {
+
+          <article class="product-card">
+
+            <div class="card-header">
+              <div class="product-icon">🧴</div>
+              <span class="category">{{ product.category }}</span>
+            </div>
+
+            <h2>{{ product.name }}</h2>
+
+            <p class="description">
+              {{ product.description || 'No description provided.' }}
+            </p>
+
+            <div class="info-box">
+              <span>Usage Instructions</span>
+              <p>{{ product.usageInstructions || 'No usage instructions provided.' }}</p>
+            </div>
+
+            <div class="product-details">
+              <div>
+                <span>Price</span>
+                <strong>₹{{ product.price }}</strong>
+              </div>
+
+              <div>
+                <span>Stock</span>
+                <strong [class.out-of-stock]="product.stockQuantity === 0">
+                  {{ product.stockQuantity }}
+                </strong>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <button type="button" class="edit-button" (click)="editProduct(product)">
+                Edit
+              </button>
+
+              <button
+                type="button"
+                class="delete-button"
+                [disabled]="deletingId() === product.id"
+                (click)="deleteProduct(product)">
+                @if (deletingId() === product.id) {
+                  Deleting...
+                } @else {
+                  Delete
+                }
+              </button>
+            </div>
+
+          </article>
+
+        }
+
+      </div>
+
+    }
+
+  </section>
+
+</div>

@@ -1,0 +1,35 @@
+<div class="toast-container" aria-live="polite">
+
+  @for (toast of toastService.toasts(); track toast.id) {
+
+    <div
+      class="toast"
+      [class.success]="toast.type === 'success'"
+      [class.error]="toast.type === 'error'"
+      [class.info]="toast.type === 'info'"
+      [style.--toast-duration]="toast.duration + 'ms'"
+      role="status">
+
+      <span class="toast-icon">
+        @if (toast.type === 'success') { ✓ }
+        @else if (toast.type === 'error') { ✕ }
+        @else { i }
+      </span>
+
+      <p class="toast-message">{{ toast.message }}</p>
+
+      <button
+        type="button"
+        class="toast-close"
+        aria-label="Close notification"
+        (click)="toastService.dismiss(toast.id)">
+        ✕
+      </button>
+
+      <div class="toast-progress"></div>
+
+    </div>
+
+  }
+
+</div>

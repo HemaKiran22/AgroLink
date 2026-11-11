@@ -1,0 +1,190 @@
+<div class="page">
+
+  <header class="page-header">
+    <div>
+      <a [routerLink]="dashboardRoute" class="back-link">
+        ← Dashboard
+      </a>
+
+      <h1>Feedback</h1>
+
+      <p>Share your experience and suggestions about AgroLink.</p>
+    </div>
+  </header>
+
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      {{ successMessage() }}
+    </div>
+  }
+
+
+  <!-- CREATE FEEDBACK -->
+  <section class="feedback-form-card">
+
+    <div class="form-heading">
+      <div class="form-icon">⭐</div>
+
+      <div>
+        <h2>Give Feedback</h2>
+        <p>Tell us about your AgroLink experience.</p>
+      </div>
+    </div>
+
+    <form #form="ngForm" (ngSubmit)="submitFeedback(form)">
+
+      <!-- RATING -->
+      <div class="form-group">
+        <label>Your Rating</label>
+
+        <div class="rating" role="group" aria-label="Rating">
+          @for (value of ratingValues; track value) {
+            <button
+              type="button"
+              class="star-button"
+              [class.selected]="value <= feedbackForm.rating"
+              (click)="selectRating(value)"
+              [attr.aria-label]="value + ' star rating'">
+              ★
+            </button>
+          }
+        </div>
+
+        <span class="rating-text">
+          {{ feedbackForm.rating }} / 5
+        </span>
+      </div>
+
+
+      <!-- COMMENT -->
+      <div class="form-group">
+        <label for="comment">Comment</label>
+
+        <textarea
+          id="comment"
+          name="comment"
+          [(ngModel)]="feedbackForm.comment"
+          #comment="ngModel"
+          required
+          maxlength="1000"
+          rows="6"
+          placeholder="Share your experience, suggestions or feedback"></textarea>
+
+        <div class="comment-footer">
+          @if (comment.invalid && comment.touched) {
+            <small class="validation">
+              Feedback comment is required.
+            </small>
+          }
+
+          <span class="character-count">
+            {{ feedbackForm.comment.length }}/1000
+          </span>
+        </div>
+      </div>
+
+
+      <button type="submit" class="submit-button" [disabled]="submitting()">
+        @if (submitting()) {
+          Submitting...
+        } @else {
+          Submit Feedback
+        }
+      </button>
+
+    </form>
+
+  </section>
+
+
+  <!-- MY FEEDBACK -->
+  <section class="my-feedback">
+
+    <div class="section-heading">
+      <div>
+        <h2>My Feedback</h2>
+        <p>Feedback you have submitted.</p>
+      </div>
+
+      <button
+        type="button"
+        class="refresh-button"
+        (click)="loadFeedback()"
+        [disabled]="loading()">
+        {{ loading() ? 'Refreshing...' : 'Refresh' }}
+      </button>
+    </div>
+
+
+    @if (loading()) {
+
+      <div class="state-card">
+        Loading your feedback...
+      </div>
+
+    } @else if (feedbackList().length === 0) {
+
+      <div class="state-card">
+        <div class="empty-icon">⭐</div>
+        <h3>No feedback submitted</h3>
+        <p>Your submitted feedback will appear here.</p>
+      </div>
+
+    } @else {
+
+      <div class="feedback-list">
+
+        @for (feedback of feedbackList(); track feedback.id) {
+
+          <article class="feedback-card">
+
+            <div class="feedback-header">
+              <div class="stars">
+                @for (value of ratingValues; track value) {
+                  <span [class.active]="value <= feedback.rating">★</span>
+                }
+              </div>
+
+              <span class="feedback-date">
+                {{ feedback.createdAt | date:'medium' }}
+              </span>
+            </div>
+
+            <p class="comment">{{ feedback.comment }}</p>
+
+            <div class="feedback-footer">
+              <span>
+                Rating: <strong>{{ feedback.rating }}/5</strong>
+              </span>
+
+              <button
+                type="button"
+                class="delete-button"
+                [disabled]="deletingId() === feedback.id"
+                (click)="deleteFeedback(feedback)">
+                @if (deletingId() === feedback.id) {
+                  Deleting...
+                } @else {
+                  Delete
+                }
+              </button>
+            </div>
+
+          </article>
+
+        }
+
+      </div>
+
+    }
+
+  </section>
+
+</div>

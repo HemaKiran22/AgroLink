@@ -1,0 +1,368 @@
+<div class="dashboard-page">
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="navbar">
+
+    <a routerLink="/farmer/dashboard" class="brand">
+      <span class="brand-icon">🌱</span>
+      <span>AgroLink</span>
+    </a>
+
+    <button
+      type="button"
+      class="menu-toggle"
+      [attr.aria-expanded]="menuOpen()"
+      aria-label="Toggle menu"
+      (click)="toggleMenu()">
+      {{ menuOpen() ? '✕' : '☰' }}
+    </button>
+
+    <nav class="nav-links" [class.open]="menuOpen()">
+      <a routerLink="/farmer/dashboard" routerLinkActive="active" (click)="closeMenu()">Dashboard</a>
+      <a routerLink="/farmer/crops" routerLinkActive="active" (click)="closeMenu()">My Crops</a>
+      <a routerLink="/farmer/agrochemicals" routerLinkActive="active" (click)="closeMenu()">Agrochemicals</a>
+      <a routerLink="/farmer/requests" routerLinkActive="active" (click)="closeMenu()">Requests</a>
+      <a routerLink="/feedback" routerLinkActive="active" (click)="closeMenu()">Feedback</a>
+
+      <div class="nav-user">
+        <span class="user-avatar">👨‍🌾</span>
+        <div class="user-text">
+          <strong>{{ user()?.name ?? 'Farmer' }}</strong>
+          <small>Farmer</small>
+        </div>
+      </div>
+
+      <button type="button" class="logout-button" (click)="logout()">
+        Logout
+      </button>
+    </nav>
+
+  </header>
+
+
+  <main class="dashboard-container">
+
+    <!-- ================= WELCOME ================= -->
+    <section class="welcome-banner">
+
+      <div class="welcome-text">
+        <span class="welcome-date">{{ today | date: 'EEEE, d MMMM y' }}</span>
+
+        <h1>{{ greeting() }}, {{ firstName() }} 👋</h1>
+
+        <p>
+          You have <strong>{{ totalCrops() }}</strong> crop listings and
+          <strong>{{ pendingCount() }}</strong> pending product requests.
+        </p>
+
+        <div class="welcome-actions">
+          <button type="button" class="btn btn-light" (click)="addCrop()">
+            + Add Crop
+          </button>
+
+          <a routerLink="/farmer/agrochemicals" class="btn btn-outline-light">
+            🧴 Browse Products
+          </a>
+
+          <button
+            type="button"
+            class="btn btn-ghost"
+            [disabled]="loading()"
+            (click)="refresh()">
+            {{ loading() ? 'Refreshing...' : '↻ Refresh' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="welcome-art">🌾</div>
+
+    </section>
+
+
+    <!-- ================= STATS ================= -->
+    <section class="stats-grid">
+
+      <a routerLink="/farmer/crops" class="stat-card">
+        <div class="stat-icon green">🌾</div>
+        <div>
+          <span class="stat-label">My Crops</span>
+          <strong class="stat-value">
+            {{ loading() ? '—' : totalCrops() }}
+          </strong>
+          <small>Active listings</small>
+        </div>
+      </a>
+
+      <a routerLink="/farmer/crops" class="stat-card">
+        <div class="stat-icon amber">⚖️</div>
+        <div>
+          <span class="stat-label">Total Stock</span>
+          <strong class="stat-value">
+            {{ loading() ? '—' : (totalStockKg() | number: '1.0-2') }}
+            <span class="unit">kg</span>
+          </strong>
+          <small>Value ₹{{ listingValue() | number: '1.0-0' }}</small>
+        </div>
+      </a>
+
+      <a routerLink="/farmer/requests" class="stat-card">
+        <div class="stat-icon orange">⏳</div>
+        <div>
+          <span class="stat-label">Pending Requests</span>
+          <strong class="stat-value">
+            {{ loading() ? '—' : pendingCount() }}
+          </strong>
+          <small>Waiting for sellers</small>
+        </div>
+      </a>
+
+      <a routerLink="/farmer/requests" class="stat-card">
+        <div class="stat-icon blue">✅</div>
+        <div>
+          <span class="stat-label">Completed</span>
+          <strong class="stat-value">
+            {{ loading() ? '—' : completedCount() }}
+          </strong>
+          <small>of {{ totalRequests() }} requests</small>
+        </div>
+      </a>
+
+    </section>
+
+
+    <!-- ================= REQUEST STATUS ================= -->
+    <section class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Request Status Overview</h2>
+          <p>How your product requests are progressing.</p>
+        </div>
+
+        <a routerLink="/farmer/requests" class="btn btn-small btn-outline">
+          View All Requests
+        </a>
+      </div>
+
+      @if (totalRequests() === 0) {
+        <p class="muted">No requests yet. Browse agrochemicals to send your first request.</p>
+      } @else {
+        <div class="status-bar">
+          @for (item of statusBreakdown(); track item.label) {
+            @if (item.count > 0) {
+              <div
+                class="status-segment"
+                [class]="'status-segment ' + item.css"
+                [style.width.%]="item.percent"
+                [title]="item.label + ': ' + item.count">
+              </div>
+            }
+          }
+        </div>
+
+        <div class="status-legend">
+          @for (item of statusBreakdown(); track item.label) {
+            <div class="legend-item">
+              <span class="legend-dot" [class]="'legend-dot ' + item.css"></span>
+              <span>{{ item.label }}</span>
+              <strong>{{ item.count }}</strong>
+            </div>
+          }
+        </div>
+      }
+
+    </section>
+
+
+    <!-- ================= TWO COLUMNS ================= -->
+    <div class="two-column">
+
+      <!-- RECENT REQUESTS -->
+      <section class="panel">
+
+        <div class="panel-header">
+          <div>
+            <h2>Recent Requests</h2>
+            <p>Your latest product requests.</p>
+          </div>
+
+          <a routerLink="/farmer/requests" class="link-button">View All →</a>
+        </div>
+
+        @if (loading()) {
+          <div class="skeleton-list">
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+          </div>
+        } @else if (recentRequests().length === 0) {
+          <div class="empty-state">
+            <span>📋</span>
+            <p>You haven't requested any products yet.</p>
+            <a routerLink="/farmer/agrochemicals" class="btn btn-small btn-primary">
+              Request a Product
+            </a>
+          </div>
+        } @else {
+          <ul class="request-list">
+            @for (request of recentRequests(); track request.id) {
+              <li class="request-item">
+                <div class="request-icon">🧴</div>
+
+                <div class="request-info">
+                  <strong>{{ request.agrochemicalName }}</strong>
+                  <small>
+                    {{ request.sellerName }} · Qty {{ request.quantity }} ·
+                    {{ request.requestedAt | date: 'd MMM' }}
+                  </small>
+                </div>
+
+                <span class="badge" [class]="'badge ' + getStatusClass(request.status)">
+                  {{ request.status }}
+                </span>
+              </li>
+            }
+          </ul>
+        }
+
+      </section>
+
+
+      <!-- MY CROPS -->
+      <section class="panel">
+
+        <div class="panel-header">
+          <div>
+            <h2>My Crops</h2>
+            <p>Your latest crop listings.</p>
+          </div>
+
+          <div class="header-actions">
+            <a routerLink="/farmer/crops" class="link-button">Manage →</a>
+            <button type="button" class="btn btn-small btn-primary" (click)="addCrop()">
+              + Add
+            </button>
+          </div>
+        </div>
+
+        @if (loading()) {
+          <div class="skeleton-list">
+            <div class="skeleton"></div>
+            <div class="skeleton"></div>
+          </div>
+        } @else if (recentCrops().length === 0) {
+          <div class="empty-state">
+            <span>🌾</span>
+            <p>No crops added yet.</p>
+            <button type="button" class="btn btn-small btn-primary" (click)="addCrop()">
+              + Add Your First Crop
+            </button>
+          </div>
+        } @else {
+          <div class="crop-mini-grid">
+            @for (crop of recentCrops(); track crop.id) {
+              <article class="crop-mini-card">
+                <div class="crop-mini-top">
+                  <strong>{{ crop.name }}</strong>
+                  <span class="chip">{{ crop.category }}</span>
+                </div>
+
+                <div class="crop-mini-details">
+                  <span>₹{{ crop.pricePerKg }}/kg</span>
+                  <span>{{ crop.quantityInKg }} kg</span>
+                </div>
+
+                <small class="crop-location">📍 {{ crop.location }}</small>
+              </article>
+            }
+          </div>
+        }
+
+      </section>
+
+    </div>
+
+
+    <!-- ================= PRODUCTS ================= -->
+    <section class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Products For You</h2>
+          <p>{{ availableProducts().length }} agrochemicals currently in stock.</p>
+        </div>
+
+        <a routerLink="/farmer/agrochemicals" class="btn btn-small btn-outline">
+          Browse All
+        </a>
+      </div>
+
+      @if (loading()) {
+        <div class="skeleton-list">
+          <div class="skeleton"></div>
+        </div>
+      } @else if (featuredProducts().length === 0) {
+        <p class="muted">No products are in stock right now. Check back later.</p>
+      } @else {
+        <div class="product-mini-grid">
+          @for (product of featuredProducts(); track product.id) {
+            <article class="product-mini-card">
+              <div class="product-mini-icon">🧴</div>
+
+              <strong>{{ product.name }}</strong>
+              <small>{{ product.category }} · {{ product.sellerName }}</small>
+
+              <div class="product-mini-footer">
+                <span class="price">₹{{ product.price }}</span>
+                <span class="stock">{{ product.stockQuantity }} left</span>
+              </div>
+
+              <a routerLink="/farmer/agrochemicals" class="btn btn-small btn-primary full">
+                Request
+              </a>
+            </article>
+          }
+        </div>
+      }
+
+    </section>
+
+
+    <!-- ================= QUICK ACCESS ================= -->
+    <section class="quick-access">
+
+      <h2>Quick Access</h2>
+
+      <div class="quick-grid">
+
+        <a routerLink="/farmer/crops" class="quick-card">
+          <span class="quick-icon green">🌾</span>
+          <strong>My Crops</strong>
+          <small>Add, edit and delete crops</small>
+        </a>
+
+        <a routerLink="/farmer/agrochemicals" class="quick-card">
+          <span class="quick-icon amber">🧴</span>
+          <strong>Agrochemicals</strong>
+          <small>Explore seller products</small>
+        </a>
+
+        <a routerLink="/farmer/requests" class="quick-card">
+          <span class="quick-icon blue">📋</span>
+          <strong>My Requests</strong>
+          <small>Track request status</small>
+        </a>
+
+        <a routerLink="/feedback" class="quick-card">
+          <span class="quick-icon purple">⭐</span>
+          <strong>Feedback</strong>
+          <small>Rate your experience</small>
+        </a>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>

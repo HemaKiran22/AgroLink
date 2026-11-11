@@ -1,0 +1,156 @@
+<div class="page">
+
+  <!-- HEADER -->
+  <header class="page-header">
+    <div>
+      <a routerLink="/seller/dashboard" class="back-link">
+        ← Seller Dashboard
+      </a>
+
+      <h1>Browse Crops</h1>
+
+      <p>Explore crop listings posted by AgroLink farmers.</p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      [disabled]="loading()"
+      (click)="loadCrops()">
+      {{ loading() ? 'Refreshing...' : 'Refresh' }}
+    </button>
+  </header>
+
+
+  @if (errorMessage()) {
+    <div class="error-message">
+      {{ errorMessage() }}
+    </div>
+  }
+
+
+  <!-- FILTERS -->
+  <section class="filters">
+
+    <div class="filter-group">
+      <label for="search">Search Crops</label>
+
+      <input
+        id="search"
+        type="search"
+        name="search"
+        [ngModel]="searchText()"
+        (ngModelChange)="searchText.set($event)"
+        placeholder="Search name, farmer or location">
+    </div>
+
+    <div class="filter-group">
+      <label for="category">Category</label>
+
+      <select
+        id="category"
+        name="category"
+        [ngModel]="selectedCategory()"
+        (ngModelChange)="selectedCategory.set($event)">
+
+        <option value="All">All Categories</option>
+
+        @for (category of categories(); track category) {
+          <option [value]="category">{{ category }}</option>
+        }
+
+      </select>
+    </div>
+
+  </section>
+
+
+  <!-- CROPS -->
+  <section class="crops-section">
+
+    @if (loading()) {
+
+      <div class="state-card">
+        Loading crop listings...
+      </div>
+
+    } @else if (filteredCrops().length === 0) {
+
+      <div class="state-card">
+        <div class="empty-icon">🌾</div>
+
+        <h2>No crops found</h2>
+
+        @if (crops().length === 0) {
+          <p>Farmer crop listings will appear here.</p>
+        } @else {
+          <p>Try changing your search or category filter.</p>
+
+          <button type="button" class="refresh-button" (click)="clearFilters()">
+            Clear Filters
+          </button>
+        }
+      </div>
+
+    } @else {
+
+      <div class="crop-grid">
+
+        @for (crop of filteredCrops(); track crop.id) {
+
+          <article class="crop-card">
+
+            <!-- HEADER -->
+            <div class="crop-header">
+              <div class="crop-icon">🌾</div>
+              <span class="category">{{ crop.category }}</span>
+            </div>
+
+            <!-- NAME -->
+            <h2>{{ crop.name }}</h2>
+
+            <!-- FARMER -->
+            <div class="farmer">
+              <span class="farmer-icon">👨‍🌾</span>
+
+              <div>
+                <span>Listed by</span>
+                <strong>{{ crop.farmerName }}</strong>
+              </div>
+            </div>
+
+            <!-- DESCRIPTION -->
+            <p class="description">
+              {{ crop.description || 'No description provided.' }}
+            </p>
+
+            <!-- DETAILS -->
+            <div class="crop-details">
+              <div>
+                <span>Price</span>
+                <strong>₹{{ crop.pricePerKg }}/kg</strong>
+              </div>
+
+              <div>
+                <span>Quantity</span>
+                <strong>{{ crop.quantityInKg }} kg</strong>
+              </div>
+            </div>
+
+            <!-- LOCATION -->
+            <div class="location">
+              <span>📍</span>
+              {{ crop.location }}
+            </div>
+
+          </article>
+
+        }
+
+      </div>
+
+    }
+
+  </section>
+
+</div>

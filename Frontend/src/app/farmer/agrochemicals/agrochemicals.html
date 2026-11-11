@@ -1,0 +1,256 @@
+<div class="page">
+
+  <header class="page-header">
+    <div>
+      <a routerLink="/farmer/dashboard" class="back-link">
+        ← Farmer Dashboard
+      </a>
+
+      <h1>Browse Agrochemicals</h1>
+
+      <p>
+        Explore agricultural products from
+        AgroLink sellers and send product requests.
+      </p>
+    </div>
+  </header>
+
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      {{ successMessage() }}
+    </div>
+  }
+
+
+  <!-- REQUEST FORM -->
+  @if (selectedProduct(); as product) {
+    <section class="request-card">
+
+      <div class="request-heading">
+        <div>
+          <span class="request-label">Product Request</span>
+
+          <h2>Request {{ product.name }}</h2>
+
+          <p>Available stock: {{ product.stockQuantity }}</p>
+        </div>
+
+        <button type="button" class="close-button" (click)="closeRequestForm()">
+          ✕
+        </button>
+      </div>
+
+      <form #requestFormDirective="ngForm" (ngSubmit)="submitRequest(requestFormDirective)">
+
+        <div class="request-summary">
+          <div>
+            <span>Product</span>
+            <strong>{{ product.name }}</strong>
+          </div>
+
+          <div>
+            <span>Seller</span>
+            <strong>{{ product.sellerName }}</strong>
+          </div>
+
+          <div>
+            <span>Price</span>
+            <strong>₹{{ product.price }}</strong>
+          </div>
+        </div>
+
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label for="quantity">Required Quantity</label>
+
+            <input
+              id="quantity"
+              name="quantity"
+              type="number"
+              [(ngModel)]="requestForm.quantity"
+              #quantity="ngModel"
+              required
+              min="1"
+              [max]="product.stockQuantity">
+
+            @if (quantity.invalid && quantity.touched) {
+              <small>
+                Enter a quantity between 1 and {{ product.stockQuantity }}.
+              </small>
+            }
+          </div>
+
+          <div class="form-group message-field">
+            <label for="requestMessage">
+              Message <span>(optional)</span>
+            </label>
+
+            <textarea
+              id="requestMessage"
+              name="message"
+              [(ngModel)]="requestForm.message"
+              maxlength="500"
+              rows="4"
+              placeholder="Add a message for the seller"></textarea>
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="cancel-button" (click)="closeRequestForm()">
+            Cancel
+          </button>
+
+          <button type="submit" class="submit-button" [disabled]="submitting()">
+            @if (submitting()) {
+              Sending Request...
+            } @else {
+              Send Request
+            }
+          </button>
+        </div>
+
+      </form>
+
+    </section>
+  }
+
+
+  <!-- FILTERS -->
+  <section class="filters">
+
+    <div class="search-field">
+      <label for="search">Search products</label>
+
+      <input
+        id="search"
+        type="search"
+        name="search"
+        [ngModel]="searchText()"
+        (ngModelChange)="searchText.set($event)"
+        placeholder="Search by name, category or seller">
+    </div>
+
+    <div class="category-field">
+      <label for="category">Category</label>
+
+      <select
+        id="category"
+        name="category"
+        [ngModel]="selectedCategory()"
+        (ngModelChange)="selectedCategory.set($event)">
+
+        <option value="All">All Categories</option>
+
+        @for (category of categories(); track category) {
+          <option [value]="category">{{ category }}</option>
+        }
+
+      </select>
+    </div>
+
+  </section>
+
+
+  <!-- PRODUCTS -->
+  <section class="products-section">
+
+    @if (loading()) {
+      <div class="state-card">
+        Loading agrochemicals...
+      </div>
+    }
+
+    @else if (filteredProducts().length === 0) {
+      <div class="state-card">
+        <div class="empty-icon">🧴</div>
+
+        <h2>No products found</h2>
+
+        @if (products().length === 0) {
+          <p>Sellers haven't added any products yet.</p>
+        } @else {
+          <p>Try changing your search or category.</p>
+
+          <button type="button" class="request-button" (click)="clearFilters()">
+            Clear Filters
+          </button>
+        }
+      </div>
+    }
+
+    @else {
+      <div class="product-grid">
+
+        @for (product of filteredProducts(); track product.id) {
+          <article class="product-card">
+
+            <div class="product-header">
+              <div class="product-icon">🧴</div>
+              <span class="category">{{ product.category }}</span>
+            </div>
+
+            <h2>{{ product.name }}</h2>
+
+            <p class="seller">
+              Sold by <strong>{{ product.sellerName }}</strong>
+            </p>
+
+            <p class="description">
+              {{ product.description || 'No description provided.' }}
+            </p>
+
+            <div class="usage">
+              <span>Usage instructions</span>
+              <p>{{ product.usageInstructions || 'No instructions provided.' }}</p>
+            </div>
+
+            <div class="product-details">
+              <div>
+                <span>Price</span>
+                <strong>₹{{ product.price }}</strong>
+              </div>
+
+              <div>
+                <span>Stock</span>
+                <strong [class.out-of-stock]="product.stockQuantity <= 0">
+                  @if (product.stockQuantity > 0) {
+                    {{ product.stockQuantity }}
+                  } @else {
+                    Out of stock
+                  }
+                </strong>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="request-button"
+              [disabled]="product.stockQuantity <= 0"
+              (click)="openRequestForm(product)">
+
+              @if (product.stockQuantity > 0) {
+                Request Product
+              } @else {
+                Unavailable
+              }
+
+            </button>
+
+          </article>
+        }
+
+      </div>
+    }
+
+  </section>
+
+</div>

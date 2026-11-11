@@ -1,0 +1,250 @@
+<div class="page">
+
+  <header class="page-header">
+    <div>
+      <a routerLink="/farmer/dashboard" class="back-link">
+        ← Farmer Dashboard
+      </a>
+
+      <h1>My Crops</h1>
+
+      <p>Add, update and manage your crop listings.</p>
+    </div>
+
+    <button type="button" class="add-button" (click)="openAddForm()">
+      + Add Crop
+    </button>
+  </header>
+
+
+  @if (errorMessage()) {
+    <div class="message error-message">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="message success-message">
+      {{ successMessage() }}
+    </div>
+  }
+
+
+  <!-- ADD / EDIT FORM -->
+  @if (showForm()) {
+    <section class="form-card">
+
+      <div class="form-heading">
+        <div>
+          <h2>
+            @if (editingCropId() === null) {
+              Add Crop
+            } @else {
+              Edit Crop
+            }
+          </h2>
+          <p>Enter the crop information below.</p>
+        </div>
+
+        <button type="button" class="close-button" (click)="cancelForm()">
+          ✕
+        </button>
+      </div>
+
+      <form #form="ngForm" (ngSubmit)="saveCrop(form)">
+
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label for="name">Crop Name</label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              [(ngModel)]="cropForm.name"
+              #name="ngModel"
+              required
+              maxlength="100"
+              placeholder="Example: Tomato">
+
+            @if (name.invalid && name.touched) {
+              <small>Crop name is required.</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="category">Category</label>
+            <input
+              id="category"
+              name="category"
+              type="text"
+              [(ngModel)]="cropForm.category"
+              #category="ngModel"
+              required
+              maxlength="50"
+              placeholder="Example: Vegetable">
+
+            @if (category.invalid && category.touched) {
+              <small>Category is required.</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="price">Price Per Kg (₹)</label>
+            <input
+              id="price"
+              name="pricePerKg"
+              type="number"
+              [(ngModel)]="cropForm.pricePerKg"
+              #price="ngModel"
+              required
+              min="0.01"
+              step="0.01">
+
+            @if (price.invalid && price.touched) {
+              <small>Enter a valid price.</small>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="quantity">Quantity (Kg)</label>
+            <input
+              id="quantity"
+              name="quantityInKg"
+              type="number"
+              [(ngModel)]="cropForm.quantityInKg"
+              #quantity="ngModel"
+              required
+              min="0.01"
+              step="0.01">
+
+            @if (quantity.invalid && quantity.touched) {
+              <small>Enter a valid quantity.</small>
+            }
+          </div>
+
+          <div class="form-group full-width">
+            <label for="location">Location</label>
+            <input
+              id="location"
+              name="location"
+              type="text"
+              [(ngModel)]="cropForm.location"
+              #location="ngModel"
+              required
+              maxlength="100"
+              placeholder="Example: Andhra Pradesh">
+
+            @if (location.invalid && location.touched) {
+              <small>Location is required.</small>
+            }
+          </div>
+
+          <div class="form-group full-width">
+            <label for="description">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              [(ngModel)]="cropForm.description"
+              maxlength="500"
+              rows="4"
+              placeholder="Add crop details"></textarea>
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="cancel-button" (click)="cancelForm()">
+            Cancel
+          </button>
+
+          <button type="submit" class="save-button" [disabled]="saving()">
+            @if (saving()) {
+              Saving...
+            } @else if (editingCropId() !== null) {
+              Update Crop
+            } @else {
+              Add Crop
+            }
+          </button>
+        </div>
+
+      </form>
+
+    </section>
+  }
+
+
+  <!-- CROPS -->
+  <section class="crop-section">
+
+    @if (loading()) {
+      <div class="state-card">
+        Loading your crops...
+      </div>
+    }
+
+    @else if (crops().length === 0) {
+      <div class="state-card">
+        <div class="empty-icon">🌾</div>
+        <h2>No crops added yet</h2>
+        <p>Add your first crop to start managing crop listings.</p>
+
+        <button type="button" class="add-button" (click)="openAddForm()">
+          + Add First Crop
+        </button>
+      </div>
+    }
+
+    @else {
+      <div class="crop-grid">
+
+        @for (crop of crops(); track crop.id) {
+          <article class="crop-card">
+
+            <div class="crop-card-header">
+              <div class="crop-icon">🌾</div>
+              <span class="category">{{ crop.category }}</span>
+            </div>
+
+            <h2>{{ crop.name }}</h2>
+
+            <p class="description">
+              {{ crop.description || 'No description provided.' }}
+            </p>
+
+            <div class="crop-details">
+              <div>
+                <span>Price</span>
+                <strong>₹{{ crop.pricePerKg }}/kg</strong>
+              </div>
+
+              <div>
+                <span>Quantity</span>
+                <strong>{{ crop.quantityInKg }} kg</strong>
+              </div>
+            </div>
+
+            <div class="location">
+              📍 {{ crop.location }}
+            </div>
+
+            <div class="card-actions">
+              <button type="button" class="edit-button" (click)="editCrop(crop)">
+                Edit
+              </button>
+
+              <button type="button" class="delete-button" (click)="deleteCrop(crop)">
+                Delete
+              </button>
+            </div>
+
+          </article>
+        }
+
+      </div>
+    }
+
+  </section>
+
+</div>
