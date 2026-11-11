@@ -24,7 +24,6 @@ builder.Services.AddControllers();
 // =============================================
 
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddSwaggerGen();
 
 
@@ -33,21 +32,15 @@ builder.Services.AddSwaggerGen();
 // =============================================
 
 var connectionString =
-    builder.Configuration.GetConnectionString(
-        "DefaultConnection"
-    )
+    builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
         "DefaultConnection is missing."
     );
 
-builder.Services.AddDbContext<AppDbContext>(
-    options =>
-    {
-        options.UseNpgsql(
-            connectionString
-        );
-    }
-);
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseNpgsql(connectionString);
+});
 
 
 // =============================================
@@ -109,26 +102,19 @@ builder.Services
             new TokenValidationParameters
             {
                 ValidateIssuer = true,
-
                 ValidateAudience = true,
-
                 ValidateLifetime = true,
-
                 ValidateIssuerSigningKey = true,
 
                 ValidIssuer = jwtIssuer,
-
                 ValidAudience = jwtAudience,
 
                 IssuerSigningKey =
                     new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(
-                            jwtKey
-                        )
+                        Encoding.UTF8.GetBytes(jwtKey)
                     ),
 
-                ClockSkew =
-                    TimeSpan.Zero
+                ClockSkew = TimeSpan.Zero
             };
     });
 
@@ -144,14 +130,25 @@ builder.Services.AddAuthorization();
 // 9. CORS
 // =============================================
 
+// Reads:
+// Cors:Origins:0
+// Cors:Origins:1
+//
+// Azure environment variables:
+// Cors__Origins__0
+// Cors__Origins__1
+
+var corsOrigins =
+    builder.Configuration
+        .GetSection("Cors:Origins")
+        .Get<string[]>()
+    ?? new[]
+    {
+        "https://guileless-gaufre-67a3ce.netlify.app/"
+    };
+
 builder.Services.AddCors(options =>
 {
-    var corsOrigins =
-        builder.Configuration
-            .GetSection("Cors:Origins")
-            .Get<string[]>()
-        ?? ["http://localhost:4200"];
-
     options.AddPolicy(
         "AngularPolicy",
         policy =>
@@ -176,39 +173,44 @@ var app = builder.Build();
 // 10. SWAGGER
 // =============================================
 
+// Development Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-
     app.UseSwaggerUI();
 }
 
 
 // =============================================
-// 11. CORS
+// 11. HTTPS
 // =============================================
 
-app.UseCors(
-    "AngularPolicy"
-);
+app.UseHttpsRedirection();
 
 
 // =============================================
-// 12. AUTHENTICATION
+// 12. CORS
+// =============================================
+
+app.UseCors("AngularPolicy");
+
+
+// =============================================
+// 13. AUTHENTICATION
 // =============================================
 
 app.UseAuthentication();
 
 
 // =============================================
-// 13. AUTHORIZATION
+// 14. AUTHORIZATION
 // =============================================
 
 app.UseAuthorization();
 
 
 // =============================================
-// 14. MAP CONTROLLERS
+// 15. MAP CONTROLLERS
 // =============================================
 
 app.MapControllers();
