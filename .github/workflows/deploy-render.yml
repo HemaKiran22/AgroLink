@@ -33,13 +33,13 @@ jobs:
               autoSync: true
             }')"
 
-          response="$(curl --silent --show-error \
+          response="$(curl --silent --show-error --write-out '\nHTTP_STATUS:%{http_code}' \
             -X POST "https://api.render.com/v1/blueprints" \
             -H "Authorization: Bearer $api_key" \
             -H "Content-Type: application/json" \
             --data "$payload")"
 
-          echo "$response" | jq '{id, status, name, repo, branch, path}'
+          echo "$response"
 
       - name: Deployment configuration reminder
         run: |
