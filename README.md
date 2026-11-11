@@ -161,9 +161,10 @@ The repository includes `render.yaml`, which deploys the API and Angular SSR fro
 as separate Render services. It uses the existing Neon PostgreSQL database; no database
 resource is created on Render.
 
-In Render, choose **New → Blueprint**, connect this repository, and apply
-`render.yaml`. Enter `ConnectionStrings__DefaultConnection` with the Neon connection
-string and `Jwt__Key` with a production secret when prompted.
+The GitHub Actions workflow `.github/workflows/deploy-render.yml` creates the Blueprint
+through the Render API when changes are pushed to `main`. If Render requests them,
+set `ConnectionStrings__DefaultConnection` to the Neon connection string and
+`Jwt__Key` to a production secret on the `agrolink-api` service.
 
 ## 🔮 Future Improvements
 - Pickup / home delivery option and delivery tracking

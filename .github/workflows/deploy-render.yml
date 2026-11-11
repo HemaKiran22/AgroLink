@@ -1,0 +1,45 @@
+name: Deploy AgroLink to Render
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or update Render Blueprint
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_OWNER_ID: ${{ secrets.RENDER_OWNER_ID }}
+        run: |
+          set -euo pipefail
+          payload="$(jq -n \
+            --arg ownerId "$RENDER_OWNER_ID" \
+            --arg repo "https://github.com/HemaKiran22/AgroLink" \
+            '{
+              ownerId: $ownerId,
+              name: "agrolink",
+              repo: $repo,
+              branch: "main",
+              path: "render.yaml",
+              autoSync: true
+            }')"
+
+          response="$(curl --fail-with-body --silent --show-error \
+            -X POST "https://api.render.com/v1/blueprints" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            --data "$payload")"
+
+          echo "$response" | jq '{id, status, name, repo, branch, path}'
+
+      - name: Deployment configuration reminder
+        run: |
+          echo "If Render requests secret values, set them on the agrolink-api service:"
+          echo "ConnectionStrings__DefaultConnection and Jwt__Key"
