@@ -28,6 +28,8 @@ import {
   UserRole
 } from '../models/user';
 
+import { environment } from '../../environments/environment';
+
 
 @Injectable({
   providedIn: 'root'
@@ -35,7 +37,7 @@ import {
 export class AuthService {
 
   private readonly apiUrl =
-    'http://localhost:5109/api/auth';
+    `${environment.apiBaseUrl}/auth`;
 
   private readonly platformId =
     inject(PLATFORM_ID);

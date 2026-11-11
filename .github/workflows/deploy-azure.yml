@@ -1,0 +1,61 @@
+name: Deploy AgroLink to Azure
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-api:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Publish API
+        run: dotnet publish Backend/Backend.csproj --configuration Release --output ./api-publish
+
+      - name: Deploy API
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_API_APP_NAME }}
+          publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE }}
+          package: ./api-publish
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Configure API URL
+        env:
+          API_BASE_URL: ${{ vars.AZURE_API_URL }}
+        run: |
+          test -n "$API_BASE_URL"
+          printf "export const environment = { apiBaseUrl: '%s' };\\n" "$API_BASE_URL" > Frontend/src/environments/environment.ts
+
+      - name: Build frontend
+        working-directory: Frontend
+        run: npm ci && npm run build
+
+      - name: Deploy frontend
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_FRONTEND_APP_NAME }}
+          publish-profile: ${{ secrets.AZURE_FRONTEND_PUBLISH_PROFILE }}
+          package: ./Frontend/dist/Frontend

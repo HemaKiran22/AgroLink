@@ -155,6 +155,20 @@ If your API runs on a different port, update the API URL in the Angular services
 
 ---
 
+## ☁️ Azure deployment
+
+The repository includes `.github/workflows/deploy-azure.yml`, which deploys the API and
+Angular SSR frontend to separate Azure App Services when changes are pushed to `main`.
+
+Create one production environment in GitHub and configure these values:
+
+- Variables: `AZURE_API_APP_NAME`, `AZURE_FRONTEND_APP_NAME`, `AZURE_API_URL`
+- Secrets: `AZURE_API_PUBLISH_PROFILE`, `AZURE_FRONTEND_PUBLISH_PROFILE`
+
+Configure the API App Service with the `DefaultConnection`, `Jwt__Key`, `Jwt__Issuer`,
+`Jwt__Audience`, and `Cors__Origins__0` application settings. Set the frontend App
+Service startup command to `node server/server.mjs`.
+
 ## 🔮 Future Improvements
 - Pickup / home delivery option and delivery tracking
 - Online payments

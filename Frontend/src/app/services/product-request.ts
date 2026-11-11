@@ -9,13 +9,15 @@ import {
   UpdateRequestStatus
 } from '../models/product-request';
 
+import { environment } from '../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class ProductRequestService {
 
   private readonly apiUrl =
-    'http://localhost:5109/api/productrequests';
+    `${environment.apiBaseUrl}/productrequests`;
 
   constructor(
     private http: HttpClient

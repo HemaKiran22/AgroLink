@@ -8,13 +8,15 @@ import {
   AgrochemicalRequest
 } from '../models/agrochemical';
 
+import { environment } from '../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class AgrochemicalService {
 
   private readonly apiUrl =
-    'http://localhost:5109/api/agrochemicals';
+    `${environment.apiBaseUrl}/agrochemicals`;
 
   constructor(
     private http: HttpClient

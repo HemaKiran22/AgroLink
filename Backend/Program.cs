@@ -146,14 +146,18 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
 {
+    var corsOrigins =
+        builder.Configuration
+            .GetSection("Cors:Origins")
+            .Get<string[]>()
+        ?? ["http://localhost:4200"];
+
     options.AddPolicy(
         "AngularPolicy",
         policy =>
         {
             policy
-                .WithOrigins(
-                    "http://localhost:4200"
-                )
+                .WithOrigins(corsOrigins)
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         }

@@ -8,13 +8,15 @@ import {
   CropRequest
 } from '../models/crop';
 
+import { environment } from '../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class CropService {
 
   private readonly apiUrl =
-    'http://localhost:5109/api/crops';
+    `${environment.apiBaseUrl}/crops`;
 
   constructor(
     private http: HttpClient
