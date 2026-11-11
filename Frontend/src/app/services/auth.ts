@@ -37,7 +37,7 @@ import { environment } from '../../environments/environment';
 export class AuthService {
 
   private readonly apiUrl =
-    `${environment.apiBaseUrl}/auth`;
+    `${environment.apiBaseUrl}/api/auth`;
 
   private readonly platformId =
     inject(PLATFORM_ID);
