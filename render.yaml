@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: agrolink-api
+    runtime: docker
+    dockerfilePath: ./Backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /swagger
+    envVars:
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Jwt__Key
+        sync: false
+      - key: Jwt__Issuer
+        value: AgroLinkAPI
+      - key: Jwt__Audience
+        value: AgroLinkFrontend
+      - key: Cors__Origins__0
+        value: https://agrolink-frontend.onrender.com
+
+  - type: web
+    name: agrolink-frontend
+    runtime: node
+    rootDir: Frontend
+    buildCommand: |
+      npm ci
+      printf "export const environment = { apiBaseUrl: '%s' };\n" "$API_BASE_URL" > src/environments/environment.ts
+      npm run build
+    startCommand: node dist/Frontend/server/server.mjs
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: API_BASE_URL
+        value: https://agrolink-api.onrender.com/api

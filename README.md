@@ -155,22 +155,15 @@ If your API runs on a different port, update the API URL in the Angular services
 
 ---
 
-## ☁️ Azure deployment
+## ☁️ Render deployment
 
-The repository includes `.github/workflows/deploy-azure.yml`, which provisions and
-deploys the API and Angular SSR frontend to separate Azure App Services when changes
-are pushed to `main`. It uses the existing Neon PostgreSQL database; no database
-resource is created in Azure.
+The repository includes `render.yaml`, which deploys the API and Angular SSR frontend
+as separate Render services. It uses the existing Neon PostgreSQL database; no database
+resource is created on Render.
 
-Create one production environment in GitHub and configure these values:
-
-- Variables: `AZURE_SUBSCRIPTION_ID`, `AZURE_RESOURCE_GROUP`, `AZURE_LOCATION`,
-  `AZURE_APP_SERVICE_PLAN`, `AZURE_API_APP_NAME`, `AZURE_FRONTEND_APP_NAME`
-- Secrets: `AZURE_CREDENTIALS`, `NEON_CONNECTION_STRING`, `JWT_KEY`
-
-`AZURE_CREDENTIALS` is the JSON output from an Azure service principal with
-Contributor access to the subscription. The workflow configures the Neon connection
-string, JWT settings, CORS, and the frontend startup command automatically.
+In Render, choose **New → Blueprint**, connect this repository, and apply
+`render.yaml`. Enter `ConnectionStrings__DefaultConnection` with the Neon connection
+string and `Jwt__Key` with a production secret when prompted.
 
 ## 🔮 Future Improvements
 - Pickup / home delivery option and delivery tracking
