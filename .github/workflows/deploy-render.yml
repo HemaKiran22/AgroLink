@@ -31,7 +31,7 @@ jobs:
               autoSync: true
             }')"
 
-          response="$(curl --fail-with-body --silent --show-error \
+          response="$(curl --silent --show-error \
             -X POST "https://api.render.com/v1/blueprints" \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
