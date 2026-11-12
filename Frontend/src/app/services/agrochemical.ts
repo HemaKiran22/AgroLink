@@ -16,7 +16,7 @@ import { environment } from '../../environments/environment';
 export class AgrochemicalService {
 
   private readonly apiUrl =
-    `${environment.apiBaseUrl}/agrochemicals`;
+    `${environment.apiBaseUrl}/api/agrochemicals`;
 
   constructor(
     private http: HttpClient

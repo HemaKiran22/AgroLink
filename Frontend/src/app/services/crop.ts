@@ -16,7 +16,7 @@ import { environment } from '../../environments/environment';
 export class CropService {
 
   private readonly apiUrl =
-    `${environment.apiBaseUrl}/crops`;
+    `${environment.apiBaseUrl}/api/crops`;
 
   constructor(
     private http: HttpClient

@@ -17,7 +17,7 @@ import { environment } from '../../environments/environment';
 export class ProductRequestService {
 
   private readonly apiUrl =
-    `${environment.apiBaseUrl}/productrequests`;
+    `${environment.apiBaseUrl}/api/productrequests`;
 
   constructor(
     private http: HttpClient

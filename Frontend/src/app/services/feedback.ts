@@ -15,7 +15,7 @@ import { environment } from '../../environments/environment';
 export class FeedbackService {
 
   private readonly apiUrl =
-    `${environment.apiBaseUrl}/feedback`;
+    `${environment.apiBaseUrl}/api/feedback`;
 
   constructor(
     private http: HttpClient
