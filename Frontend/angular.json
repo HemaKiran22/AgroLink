@@ -31,7 +31,7 @@
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {
-              "allowedHosts": []
+              "allowedHosts": ["agrolink-frontend-a0ayfpcjeugzb6az.southindia-01.azurewebsites.net"]
             },
             "ssr": {
               "entry": "src/server.ts"
