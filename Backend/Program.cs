@@ -144,7 +144,7 @@ var corsOrigins =
         .Get<string[]>()
     ?? new[]
     {
-        "https://agrolink-gtfzcggbcdh6dxhn.southindia-01.azurewebsites.net"
+        "http://localhost:4200"
     };
 
 builder.Services.AddCors(options =>
