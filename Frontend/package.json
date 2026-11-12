@@ -3,11 +3,14 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "node dist/Frontend/server/server.mjs",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:Frontend": "node dist/Frontend/server/server.mjs"
+  },
+  "engines": {
+    "node": "24.x"
   },
   "private": true,
   "packageManager": "npm@12.1.0",
