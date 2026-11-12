@@ -144,7 +144,7 @@ var corsOrigins =
         .Get<string[]>()
     ?? new[]
     {
-        "https://guileless-gaufre-67a3ce.netlify.app/"
+        "https://agrolink-gtfzcggbcdh6dxhn.southindia-01.azurewebsites.net"
     };
 
 builder.Services.AddCors(options =>
